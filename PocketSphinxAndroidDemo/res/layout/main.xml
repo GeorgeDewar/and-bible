@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/white"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/Button01"
+        android:layout_width="350sp"
+        android:layout_height="80sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0"
+        android:text="Hold and Speak"
+        android:textSize="20sp" >
+    </Button>
+
+    <TextView
+        android:id="@+id/PerformanceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/performance_text" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/WhichPass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textColor="#ff3300"
+        android:textSize="20sp"
+        android:textStyle="bold" >
+    </TextView>
+
+    <TextView
+        android:id="@+id/SayWords"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="say Words" >
+    </TextView>
+
+    <EditText
+        android:id="@+id/EditText01"
+        android:layout_width="fill_parent"
+        android:layout_height="150dip"
+        android:autoText="false"
+        android:contentDescription="Words"
+        android:drawSelectorOnTop="true"
+        android:gravity="left|top"
+        android:hint="improved hypothesis appears here"
+        android:textAppearance="@+id/EditText01"
+        android:textSize="20dip" >
+    </EditText>
+
+</LinearLayout>
