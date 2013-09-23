@@ -17,7 +17,8 @@ import net.bible.android.view.activity.base.CustomTitlebarActivityBase;
 import net.bible.android.view.activity.page.screen.DocumentViewManager;
 import net.bible.android.view.util.TouchOwner;
 import net.bible.service.device.ScreenSettings;
-
+import net.bible.service.pocketsphinx.RecognitionListener;
+import net.bible.service.pocketsphinx.RecognizerTask;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -38,8 +39,12 @@ import android.view.View;
  * @see gnu.lgpl.License for license details.<br>
  *      The copyright to this program is held by it's author.
  */
-public class MainBibleActivity extends CustomTitlebarActivityBase {
+public class MainBibleActivity extends CustomTitlebarActivityBase implements RecognitionListener {
 
+	static {
+		System.loadLibrary("pocketsphinx_jni");
+	}
+	
 	private DocumentViewManager documentViewManager;
 	
 	private BibleContentManager bibleContentManager;
@@ -59,6 +64,9 @@ public class MainBibleActivity extends CustomTitlebarActivityBase {
 	
 	private long lastContextMenuCreateTimeMillis;
 
+	private RecognizerTask recognizerTask;
+	private Thread recognizerThread;
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -123,6 +131,16 @@ public class MainBibleActivity extends CustomTitlebarActivityBase {
 				// Noop
 			}
 		});
+		
+		// Create the RecognizerTask that recognises speech in order to scroll the
+		// bible text
+		recognizerTask = new RecognizerTask("hub4wsj_sc_8k", "hub4.5000.DMP",
+				"hub4.5000.dic");
+		recognizerTask.setRecognitionListener(this);
+		
+		// Create and start thread for RecognizerTask to run on
+		recognizerThread = new Thread(recognizerTask);
+		recognizerThread.start();
     }
 
     /** called if the app is re-entered after returning from another app.
@@ -399,5 +417,21 @@ public class MainBibleActivity extends CustomTitlebarActivityBase {
 
 	protected BibleContentManager getBibleContentManager() {
 		return bibleContentManager;
+	}
+
+	@Override
+	public void onPartialResults(Bundle b) {
+		final String text = b.getString("hyp");
+		Log.i(TAG, "Speech recognition partial results received: " + text);
+	}
+
+	@Override
+	public void onResults(Bundle b) {
+		Log.i(TAG, "Speech recognition results received");
+	}
+
+	@Override
+	public void onError(int err) {
+		Log.e(TAG, "Speech recognition error: " + err);
 	}
  }
