@@ -1,5 +1,6 @@
 package edu.cmu.pocketsphinx.demo;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import android.app.Activity;
@@ -24,6 +25,15 @@ public class PocketSphinxAndroidDemo extends Activity implements
 	static {
 		System.loadLibrary("pocketsphinx_jni");
 	}
+
+	String text = ("After Jesus was born in Bethlehem in Judea during the time of King Herod Magi "
+			+ "from the east came to Jerusalem and asked Where is the one who has been born king of"
+			+ " the Jews We saw his star when it rose and have come to worship him When King Herod "
+			+ "heard this he was disturbed and all Jerusalem with him When he had called together"
+			+ " all the peoples chief priests and teachers of the law he asked them where the Messiah "
+			+ "was to be born In Bethlehem in Judea they replied for this is what the prophet has "
+			+ "written But you Bethlehem in the land of Judah are by no means least among the rulers "
+			+ "of Judah for out of you will come a ruler who will shepherd my people Israel").toUpperCase();
 
 	/**
 	 * Recognizer task, which runs in a worker thread.
@@ -62,6 +72,7 @@ public class PocketSphinxAndroidDemo extends Activity implements
 	final static int ACTIVITY_CREATE = 1;
 
 	EditText words;
+	EditText actual;
 
 	/**
 	 * Respond to touch events on the Speak button.
@@ -120,10 +131,11 @@ public class PocketSphinxAndroidDemo extends Activity implements
 		this.performance_text = (TextView) findViewById(R.id.PerformanceText);
 		this.which_pass = (TextView) findViewById(R.id.WhichPass);
 		this.words = (EditText) findViewById(R.id.EditText01);
+		this.actual = (EditText) findViewById(R.id.EditText02);
 
 		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(words.getWindowToken(), 0);
-		
+
 		this.rec = new RecognizerTask("hub4wsj_sc_8k", "hub4.5000.DMP",
 				"hub4.5000.dic");
 
@@ -131,7 +143,6 @@ public class PocketSphinxAndroidDemo extends Activity implements
 		this.listening = false;
 		this.rec.setRecognitionListener(this);
 		this.rec_thread.start();
-		
 
 	}
 
@@ -145,6 +156,7 @@ public class PocketSphinxAndroidDemo extends Activity implements
 				that.which_pass.setTextColor(Color.RED);
 				that.which_pass.setText("First Pass");
 				that.words.setText(hyp);
+				findActualText(hyp);
 			}
 		});
 	}
@@ -171,6 +183,35 @@ public class PocketSphinxAndroidDemo extends Activity implements
 		});
 	}
 
+	/* magic here */
+	public void findActualText(String recognisedText){
+		Log.d("PocketSphinxAndroidDemo", "magic");
+		String[] actualFullText = this.text.split(" ");
+		
+		String[] text = recognisedText.split(" ");
+		if(text.length > 10)
+			text = Arrays.copyOfRange(text, text.length - 10, text.length);
+		
+		// The number of positions in the actual text to look
+		int numPositions = actualFullText.length - text.length;
+		
+		// The scores of each position
+		int[] distances = new int[numPositions];
+		
+		int minDistance = 10000;
+		int minIndex = -1;
+		for(int i=0; i<numPositions; i++){
+			distances[i] = LevenshteinDistance.computeLevenshteinDistance(text, Arrays.copyOfRange(actualFullText, i, i + text.length));
+			if(distances[i] < minDistance){
+				minDistance = distances[i];
+				minIndex = i;
+			}
+		}
+		
+		String[] actual = Arrays.copyOfRange(actualFullText, minIndex, minIndex + text.length);
+		this.actual.setText(Arrays.toString(actual));
+	}
+	
 	public void onError(int err) {
 		final PocketSphinxAndroidDemo that = this;
 		that.words.post(new Runnable() {
@@ -205,5 +246,5 @@ public class PocketSphinxAndroidDemo extends Activity implements
 		super.onDestroy();
 		this.finish();
 	}
-	
+
 }

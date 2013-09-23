@@ -49,7 +49,20 @@
         android:contentDescription="Words"
         android:drawSelectorOnTop="true"
         android:gravity="left|top"
-        android:hint="improved hypothesis appears here"
+        android:hint="Words appear here"
+        android:textAppearance="@+id/EditText01"
+        android:textSize="20dip" >
+    </EditText>
+    
+    <EditText
+        android:id="@+id/EditText02"
+        android:layout_width="fill_parent"
+        android:layout_height="150dip"
+        android:autoText="false"
+        android:contentDescription="Words"
+        android:drawSelectorOnTop="true"
+        android:gravity="left|top"
+        android:hint="Actual text appears here"
         android:textAppearance="@+id/EditText01"
         android:textSize="20dip" >
     </EditText>
