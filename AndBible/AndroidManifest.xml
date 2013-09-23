@@ -141,10 +141,11 @@
 		<meta-data android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H" android:value="598.0dip" />
         
 </application>
-<uses-sdk android:minSdkVersion="7" android:targetSdkVersion="8"/>
+<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="9"/>
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.INTERNET"/>
 <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
 
 <!-- allow use on Google TV -->
 <uses-feature android:name="android.hardware.touchscreen" android:required="false" />

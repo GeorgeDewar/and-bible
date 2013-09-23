@@ -141,6 +141,7 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		// Create and start thread for RecognizerTask to run on
 		recognizerThread = new Thread(recognizerTask);
 		recognizerThread.start();
+		
     }
 
     /** called if the app is re-entered after returning from another app.
@@ -299,6 +300,9 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 
     	// allow webView to start monitoring tilt by setting focus which causes tilt-scroll to resume 
 		documentViewManager.getDocumentView().asView().requestFocus();
+		
+		// Start listening
+		recognizerTask.start();
     }
 
     @Override
@@ -434,4 +438,13 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	public void onError(int err) {
 		Log.e(TAG, "Speech recognition error: " + err);
 	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		recognizerTask.stop();
+	}
+	
+	
  }
