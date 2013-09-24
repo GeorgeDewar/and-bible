@@ -1,5 +1,7 @@
 package net.bible.android.view.activity.page;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import net.bible.android.activity.R;
@@ -9,6 +11,8 @@ import net.bible.android.control.PassageChangeMediator;
 import net.bible.android.control.event.apptobackground.AppToBackgroundEvent;
 import net.bible.android.control.event.apptobackground.AppToBackgroundListener;
 import net.bible.android.control.event.splitscreen.SplitScreenEventListener;
+import net.bible.android.control.page.CurrentBiblePage;
+import net.bible.android.control.page.CurrentPage;
 import net.bible.android.control.page.CurrentPageManager;
 import net.bible.android.control.page.splitscreen.SplitScreenControl;
 import net.bible.android.control.page.splitscreen.SplitScreenControl.Screen;
@@ -16,9 +20,18 @@ import net.bible.android.view.activity.base.CurrentActivityHolder;
 import net.bible.android.view.activity.base.CustomTitlebarActivityBase;
 import net.bible.android.view.activity.page.screen.DocumentViewManager;
 import net.bible.android.view.util.TouchOwner;
+import net.bible.service.common.ParseException;
 import net.bible.service.device.ScreenSettings;
+import net.bible.service.pocketsphinx.LevenshteinDistance;
 import net.bible.service.pocketsphinx.RecognitionListener;
 import net.bible.service.pocketsphinx.RecognizerTask;
+import net.bible.service.sword.SwordContentFacade;
+
+import org.crosswire.jsword.book.Book;
+import org.crosswire.jsword.book.BookException;
+import org.crosswire.jsword.passage.Key;
+import org.crosswire.jsword.passage.NoSuchKeyException;
+
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -66,6 +79,9 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 
 	private RecognizerTask recognizerTask;
 	private Thread recognizerThread;
+	private int[] verseLocations;
+	private String[] verseText;
+	private int totalWords;
 	
     /** Called when the activity is first created. */
     @Override
@@ -292,6 +308,56 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 				gestureListener.setSensePageDownTap(!isStrongsShown() && !CurrentPageManager.getInstance().isMapShown());
 			}
 		});
+    	
+    	
+    	CurrentPage currentPage = CurrentPageManager.getInstance().getCurrentPage();
+    	
+    		Book currentBook = currentPage.getCurrentDocument();
+    		
+    		Key verseRange = currentPage.getKey();
+    		
+    		List<Key> verses = ((CurrentBiblePage) currentPage).getAllVerses();
+    		
+    		try {
+    			
+    			verseText = new String[10000];
+    			verseLocations = new int[verses.size()];
+    			verseLocations[0] = 0;
+    			totalWords = 0;
+				for(int i=0; i<verses.size(); i++){
+					String text = SwordContentFacade.getInstance().getCanonicalText(currentBook, verses.get(i));
+					text = text.replaceAll("[^a-zA-Z0-9 ]", "");
+					while(text.contains("  ")){
+						text = text.replaceAll("  ", " ");
+					}
+					text = text.toUpperCase().trim();
+					String[] words = text.split(" ");
+					for(int w=0; w<words.length; w++){
+						verseText[verseLocations[i] + w] = words[w];
+					}
+					
+					if((i + 1) < verses.size())
+						verseLocations[i+1] = verseLocations[i] + words.length;
+					
+					totalWords += words.length;
+				}
+				
+				
+			} catch (NoSuchKeyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BookException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		
+    		
+    		
+    		System.out.println("");
+
     }
 
     @Override
@@ -427,6 +493,8 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	public void onPartialResults(Bundle b) {
 		final String text = b.getString("hyp");
 		Log.i(TAG, "Speech recognition partial results received: " + text);
+		
+		findVerse(text);
 	}
 
 	@Override
@@ -444,6 +512,41 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		super.onPause();
 		
 		recognizerTask.stop();
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		recognizerTask.stop();
+	}
+	
+	/* magic here */
+	public void findVerse(String recognisedText){
+		Log.d("PocketSphinxAndroidDemo", "magic");
+		
+		String[] text = recognisedText.split(" ");
+		if(text.length > 10)
+			text = Arrays.copyOfRange(text, text.length - 10, text.length);
+		
+		// The number of positions in the actual text to look
+		int numPositions = verseText.length - text.length;
+		
+		// The scores of each position
+		int[] distances = new int[numPositions];
+		
+		int minDistance = 10000;
+		int minIndex = -1;
+		for(int i=0; i<numPositions; i++){
+			distances[i] = LevenshteinDistance.computeLevenshteinDistance(text, Arrays.copyOfRange(verseText, i, i + text.length));
+			if(distances[i] < minDistance){
+				minDistance = distances[i];
+				minIndex = i;
+			}
+		}
+		
+		String[] actual = Arrays.copyOfRange(verseText, minIndex, minIndex + text.length);
+		Log.i(TAG, Arrays.toString(actual));
 	}
 	
 	

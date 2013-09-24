@@ -1,5 +1,8 @@
 package net.bible.android.control.page;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.bible.android.activity.R;
 import net.bible.android.control.ControlFactory;
 import net.bible.android.control.versification.Scripture;
@@ -289,5 +292,15 @@ public class CurrentBiblePage extends VersePage implements CurrentPage {
 		Verse targetChapterLastVerse = new Verse(versification, book, chapter, versification.getLastVerse(book, chapter));
 		// convert to full chapter before returning because bible view is for a full chapter
 		return new VerseRange(versification, targetChapterFirstVerse, targetChapterLastVerse);
+	}
+	
+	public List<Key> getAllVerses(){
+		Verse verse = getCurrentBibleVerse().getVerseSelected(getVersification());
+		Versification versification = getVersification();
+		List<Key> verses = new ArrayList<Key>();
+		for(int i=1; i<=versification.getLastVerse(verse.getBook(), verse.getChapter()); i++){
+			verses.add(new Verse(versification, verse.getBook(), verse.getChapter(), i));
+		}
+		return verses;
 	}
 }
