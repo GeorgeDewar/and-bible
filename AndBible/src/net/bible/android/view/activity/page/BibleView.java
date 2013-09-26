@@ -13,7 +13,6 @@ import net.bible.android.view.activity.base.DocumentView;
 import net.bible.android.view.activity.page.screen.PageTiltScroller;
 import net.bible.service.common.CommonUtils;
 import net.bible.service.device.ScreenSettings;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
@@ -513,12 +512,27 @@ public class BibleView extends WebView implements DocumentView, SplitScreenEvent
 
 	/** move the view so the selected verse is at the top or at least visible
 	 */
-	public void doScrollOrJumpToVerse() {
+	private void doScrollOrJumpToVerse() {
 		if (mJumpToVerse<=1) {
 			// use scroll to because difficult to place a tag exactly at the top
 			scrollTo(0,0);
 		} else {
 			loadUrl("javascript:location.href='#"+mJumpToVerse+"'");
 		}
+	}
+	
+	public void smoothScrollToVerse(int verse, int speed){
+		mJumpToVerse = verse;
+		int position = mVerseCalculator.getPositionOfVerse(verse);
+		int scrollAmount = position - getScrollY();
+		while(Math.abs(getScrollY() - position) > 10){
+			scrollBy(0, scrollAmount > 0 ? speed : -speed);		
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				
+			}
+		}
+		
 	}
 }

@@ -571,14 +571,15 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		}
 		
 		if(verseNum <= 2) verseNum = 1;
-		((BibleView) getDocumentViewManager().getDocumentView()).jumpToVerse(verseNum - 1);
+		//((BibleView) getDocumentViewManager().getDocumentView()).jumpToVerse(verseNum - 1);
 		
-		runOnUiThread(new Runnable() {
+		final int finalVerseNum = verseNum;
+		new Thread() {
 			@Override
 			public void run() {
-				((BibleView) getDocumentViewManager().getDocumentView()).doScrollOrJumpToVerse();
+				((BibleView) getDocumentViewManager().getDocumentView()).smoothScrollToVerse(finalVerseNum - 1, 2);
 			}
-		});
+		}.start();
 		
 	}
 	

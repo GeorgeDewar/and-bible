@@ -78,4 +78,8 @@ public class VerseCalculator {
 		// maybe scrolled off botttom
 		return versePositionList.size()-1;
 	}
+	
+	public int getPositionOfVerse(int verse){
+		return versePositionList.get(verse);
+	}
 }
