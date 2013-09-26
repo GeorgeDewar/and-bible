@@ -82,6 +82,7 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	private int[] verseLocations;
 	private String[] verseText;
 	private int totalWords;
+	private String lastRecognizedText = "";
 	
     /** Called when the activity is first created. */
     @Override
@@ -492,8 +493,14 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	@Override
 	public void onPartialResults(Bundle b) {
 		final String text = b.getString("hyp");
+		
+		// Efficiency: don't keep processing the same text
+		if(text.equals(lastRecognizedText))
+			return;
+		
 		Log.i(TAG, "Speech recognition partial results received: " + text);
 		
+		lastRecognizedText = text;
 		findVerse(text);
 	}
 
@@ -523,22 +530,24 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	
 	/* magic here */
 	public void findVerse(String recognisedText){
-		Log.d("PocketSphinxAndroidDemo", "magic");
+		long time = System.currentTimeMillis();
+		
+		int wordLimit = 10;
 		
 		String[] text = recognisedText.split(" ");
-		if(text.length > 10)
-			text = Arrays.copyOfRange(text, text.length - 10, text.length);
+		if(text.length > wordLimit)
+			text = Arrays.copyOfRange(text, text.length - wordLimit, text.length);
 		
 		// The number of positions in the actual text to look
-		int numPositions = verseText.length - text.length;
+		int numPositions = totalWords - text.length;
 		
 		// The scores of each position
 		int[] distances = new int[numPositions];
 		
 		int minDistance = 10000;
 		int minIndex = -1;
-		for(int i=0; i<numPositions; i++){
-			distances[i] = LevenshteinDistance.computeLevenshteinDistance(text, Arrays.copyOfRange(verseText, i, i + text.length));
+		for(int i=0; i<numPositions / 3; i++){
+			distances[i] = LevenshteinDistance.computeLevenshteinDistance(text, verseText, i);
 			if(distances[i] < minDistance){
 				minDistance = distances[i];
 				minIndex = i;
@@ -546,7 +555,17 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		}
 		
 		String[] actual = Arrays.copyOfRange(verseText, minIndex, minIndex + text.length);
-		Log.i(TAG, Arrays.toString(actual));
+		
+		long duration = System.currentTimeMillis() - time;
+		Log.i(TAG, Arrays.toString(actual) + " in " + duration + "ms");
+		
+		// Find verse number
+		for(int i=0; i<verseLocations.length; i++){
+			if(verseLocations[i] > minIndex){
+				Log.i(TAG, "Verse " + i);
+				break;
+			}
+		}
 	}
 	
 	
