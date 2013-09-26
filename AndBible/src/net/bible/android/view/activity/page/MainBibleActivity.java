@@ -534,6 +534,8 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		
 		int wordLimit = 10;
 		
+		int currentVerseNo = ((CurrentBiblePage) CurrentPageManager.getInstance().getCurrentPage()).getCurrentVerseNo();
+		
 		String[] text = recognisedText.split(" ");
 		if(text.length > wordLimit)
 			text = Arrays.copyOfRange(text, text.length - wordLimit, text.length);
@@ -560,12 +562,24 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		Log.i(TAG, Arrays.toString(actual) + " in " + duration + "ms");
 		
 		// Find verse number
-		for(int i=0; i<verseLocations.length; i++){
-			if(verseLocations[i] > minIndex){
-				Log.i(TAG, "Verse " + i);
+		int verseNum = 0;
+		for(verseNum = 0; verseNum<verseLocations.length; verseNum++){
+			if(verseLocations[verseNum] > minIndex){
+				Log.i(TAG, "Verse " + verseNum);
 				break;
 			}
 		}
+		
+		if(verseNum <= 2) verseNum = 1;
+		((BibleView) getDocumentViewManager().getDocumentView()).jumpToVerse(verseNum - 1);
+		
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				((BibleView) getDocumentViewManager().getDocumentView()).doScrollOrJumpToVerse();
+			}
+		});
+		
 	}
 	
 	

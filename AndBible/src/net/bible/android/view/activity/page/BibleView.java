@@ -96,12 +96,12 @@ public class BibleView extends WebView implements DocumentView, SplitScreenEvent
 				// screen is changing shape/size so constantly maintain the current verse position
 				// main difference from jumpToVerse is that this is not cleared after jump
 				if (maintainMovingVerse>0) {
-					doScrollOrJumpToVerse(maintainMovingVerse);
+					doScrollOrJumpToVerse();
 				}
 
 				// go to any specified verse or offset
 				if (mJumpToVerse > 0) {
-					doScrollOrJumpToVerse(mJumpToVerse);
+					doScrollOrJumpToVerse();
 	    		} else if (mJumpToYOffsetRatio>0) {
 		            int contentHeight = view.getContentHeight(); 
 		            int y = (int) ((float)contentHeight*mJumpToYOffsetRatio);
@@ -513,7 +513,7 @@ public class BibleView extends WebView implements DocumentView, SplitScreenEvent
 
 	/** move the view so the selected verse is at the top or at least visible
 	 */
-	private void doScrollOrJumpToVerse(int verse) {
+	public void doScrollOrJumpToVerse() {
 		if (mJumpToVerse<=1) {
 			// use scroll to because difficult to place a tag exactly at the top
 			scrollTo(0,0);
