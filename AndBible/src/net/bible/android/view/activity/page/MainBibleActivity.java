@@ -498,7 +498,7 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		if(text.equals(lastRecognizedText))
 			return;
 		
-		Log.i(TAG, "Speech recognition partial results received: " + text);
+		// Log.i(TAG, "Speech recognition partial results received: " + text);
 		
 		lastRecognizedText = text;
 		findVerse(text);
@@ -532,13 +532,20 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	public void findVerse(String recognisedText){
 		long time = System.currentTimeMillis();
 		
-		int wordLimit = 10;
+		int minWords = 5;
+		int wordLimit = 12;
 		
+		// TODO: Use some smarts to favour the area in which we are already reading 
 		int currentVerseNo = ((CurrentBiblePage) CurrentPageManager.getInstance().getCurrentPage()).getCurrentVerseNo();
 		
 		String[] text = recognisedText.split(" ");
+		
 		if(text.length > wordLimit)
 			text = Arrays.copyOfRange(text, text.length - wordLimit, text.length);
+		if(text.length < minWords)
+			return;
+		
+		Log.i(TAG, "Recognized text: " + Arrays.toString(text));
 		
 		// The number of positions in the actual text to look
 		int numPositions = totalWords - text.length;
@@ -548,7 +555,7 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		
 		int minDistance = 10000;
 		int minIndex = -1;
-		for(int i=0; i<numPositions / 3; i++){
+		for(int i=0; i<numPositions; i++){
 			distances[i] = LevenshteinDistance.computeLevenshteinDistance(text, verseText, i);
 			if(distances[i] < minDistance){
 				minDistance = distances[i];
@@ -559,27 +566,31 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		String[] actual = Arrays.copyOfRange(verseText, minIndex, minIndex + text.length);
 		
 		long duration = System.currentTimeMillis() - time;
-		Log.i(TAG, Arrays.toString(actual) + " in " + duration + "ms");
+		Log.i(TAG, Arrays.toString(actual) + " [" + minDistance + "] in " + duration + "ms");
+		
+		if(minDistance > 5){
+			Log.w(TAG, "Ignoring result with distance of " + minDistance);
+			return;
+		}
 		
 		// Find verse number
 		int verseNum = 0;
 		for(verseNum = 0; verseNum<verseLocations.length; verseNum++){
-			if(verseLocations[verseNum] > minIndex){
+			if(verseLocations[verseNum] > minIndex + text.length){
 				Log.i(TAG, "Verse " + verseNum);
 				break;
 			}
 		}
 		
 		if(verseNum <= 2) verseNum = 1;
-		//((BibleView) getDocumentViewManager().getDocumentView()).jumpToVerse(verseNum - 1);
 		
 		final int finalVerseNum = verseNum;
-		new Thread() {
+		runOnUiThread(new Runnable (){
 			@Override
 			public void run() {
-				((BibleView) getDocumentViewManager().getDocumentView()).smoothScrollToVerse(finalVerseNum - 1, 2);
+				((BibleView) getDocumentViewManager().getDocumentView()).smoothScrollToVerse(finalVerseNum, 3);
 			}
-		}.start();
+		});
 		
 	}
 	

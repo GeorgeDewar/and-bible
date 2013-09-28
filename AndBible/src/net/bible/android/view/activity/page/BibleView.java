@@ -385,6 +385,7 @@ public class BibleView extends WebView implements DocumentView, SplitScreenEvent
 			}
 		}
 		hideScrollBar = false;
+		Log.d(TAG, "scrollY: " + getScrollY());
 		return ok;
 	}
 
@@ -523,16 +524,6 @@ public class BibleView extends WebView implements DocumentView, SplitScreenEvent
 	
 	public void smoothScrollToVerse(int verse, int speed){
 		mJumpToVerse = verse;
-		int position = mVerseCalculator.getPositionOfVerse(verse);
-		int scrollAmount = position - getScrollY();
-		while(Math.abs(getScrollY() - position) > 10){
-			scrollBy(0, scrollAmount > 0 ? speed : -speed);		
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				
-			}
-		}
-		
+		loadUrl("javascript:scrollTo('"+verse+"')");
 	}
 }
