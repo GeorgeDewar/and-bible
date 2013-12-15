@@ -93,6 +93,8 @@ TODO: error and download_document_confirm_prefix need to be parameterized rather
     <string name="prefs_red_letter_summary">Show words of Christ in red</string>
     <string name="prefs_tilt_to_scroll_title">Tilt to scroll</string>
     <string name="prefs_tilt_to_scroll_summary">Tilt device to scroll page down</string>
+    <string name="prefs_voice_scroll_title">Voice Scroll</string>
+    <string name="prefs_voice_scroll_summary">Scroll using speech recognition as a passage is read out loud</string>
     <string name="prefs_night_mode_title">Night mode</string>
     <string name="prefs_night_mode_summary">For easier reading in the dark</string>
     <string name="prefs_night_mode_automatic">Automatic</string>

@@ -20,6 +20,7 @@ import net.bible.android.view.activity.base.CurrentActivityHolder;
 import net.bible.android.view.activity.base.CustomTitlebarActivityBase;
 import net.bible.android.view.activity.page.screen.DocumentViewManager;
 import net.bible.android.view.util.TouchOwner;
+import net.bible.service.common.CommonUtils;
 import net.bible.service.common.ParseException;
 import net.bible.service.device.ScreenSettings;
 import net.bible.service.pocketsphinx.LevenshteinDistance;
@@ -158,6 +159,10 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 		// Create and start thread for RecognizerTask to run on
 		recognizerThread = new Thread(recognizerTask);
 		recognizerThread.start();
+		
+		if(!voiceScrollEnabled()){
+			recognizerTask.stop();
+		}
 		
     }
 
@@ -368,8 +373,10 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
     	// allow webView to start monitoring tilt by setting focus which causes tilt-scroll to resume 
 		documentViewManager.getDocumentView().asView().requestFocus();
 		
-		// Start listening
-		recognizerTask.start();
+		if(voiceScrollEnabled()){
+			// Start listening
+			recognizerTask.start();
+		}
     }
 
     @Override
@@ -518,14 +525,16 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 	protected void onPause() {
 		super.onPause();
 		
-		recognizerTask.stop();
+		if(recognizerTask != null)
+			recognizerTask.stop();
 	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
 		
-		recognizerTask.stop();
+		if(recognizerTask != null)
+			recognizerTask.stop();
 	}
 	
 	/* magic here */
@@ -592,6 +601,10 @@ public class MainBibleActivity extends CustomTitlebarActivityBase implements Rec
 			}
 		});
 		
+	}
+	
+	static boolean voiceScrollEnabled() {
+		return CommonUtils.getSharedPreferences().getBoolean("voice_scroll_pref", false);
 	}
 	
 	
